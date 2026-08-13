@@ -29,3 +29,31 @@ canvas {
   font-size: 12px;
   pointer-events: none;
 }
+.mode {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  z-index: 2;
+  min-width: 72px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  text-align: center;
+  pointer-events: none;
+}
+.radius {
+  position: fixed;
+  top: 54px;
+  right: 22px;
+  z-index: 2;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+.radius::before {
+  content: "WHEEL ";
+  opacity: 0.65;
+  letter-spacing: 0;
+}

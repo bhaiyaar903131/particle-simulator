@@ -1,6 +1,9 @@
 const particles = [];
 const particleCount = 650;
 let trailAmount = 32;
+let interactionMode = 'attract';
+let interactionRadius = 190;
+let interactionStrength = 0.16;
 class Particle {
   constructor() {
     this.position = createVector(random(width), random(height));
@@ -18,6 +21,18 @@ class Particle {
     this.position.add(this.velocity);
     this.phase += 0.025;
   }
+  interact() {
+    if (!mouseIsPressed) return;
+    const pointer = createVector(mouseX, mouseY);
+    const offset = p5.Vector.sub(pointer, this.position);
+    const distance = offset.mag();
+    if (distance <= 0 || distance > interactionRadius) return;
+    const falloff = map(distance, 0, interactionRadius, 1, 0);
+    offset.normalize();
+    offset.mult(interactionStrength * falloff);
+    if (interactionMode === 'repel') offset.mult(-1);
+    this.velocity.add(offset);
+  }
   edges() {
     if (this.position.x <= 0 || this.position.x >= width) {
       this.velocity.x *= -1;
@@ -34,6 +49,7 @@ class Particle {
     circle(this.position.x, this.position.y, this.size);
   }
   run() {
+    this.interact();
     this.update();
     this.edges();
     this.show();
@@ -54,6 +70,7 @@ function draw() {
   for (const particle of particles) {
     particle.run();
   }
+  if (mouseIsPressed) drawInteractionRing();
 }
 function drawFrame() {
   push();
@@ -77,6 +94,24 @@ function windowResized() {
     particle.position.y = constrain(particle.position.y, 0, height);
   }
 }
+function drawInteractionRing() {
+  noFill();
+  stroke(255, 45);
+  circle(mouseX, mouseY, interactionRadius * 2);
+  noStroke();
+  fill(240);
+}
+function mouseWheel(event) {
+  interactionRadius -= event.delta * 0.12;
+  interactionRadius = constrain(interactionRadius, 70, 320);
+  const label = document.getElementById('radiusLabel');
+  if (label) label.textContent = `RADIUS ${round(interactionRadius)}`;
+  return false;
+}
+function setMode(mode) {
+  interactionMode = mode;
+  document.getElementById('modeLabel').textContent = mode.toUpperCase();
+}
 function spawnBurst(amount = 70) {
   const origin = createVector(width / 2, height / 2);
   for (let i = 0; i < amount; i++) {
@@ -92,5 +127,8 @@ function keyPressed() {
   }
   if (key === ' ') {
     spawnBurst();
+  }
+  if (key === 'r' || key === 'R') {
+    setMode(interactionMode === 'attract' ? 'repel' : 'attract');
   }
 }
