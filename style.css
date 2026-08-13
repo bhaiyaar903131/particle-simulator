@@ -20,3 +20,12 @@ canvas {
   letter-spacing: 0.08em;
   pointer-events: none;
 }
+.hint {
+  position: fixed;
+  left: 22px;
+  bottom: 18px;
+  z-index: 2;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  pointer-events: none;
+}
