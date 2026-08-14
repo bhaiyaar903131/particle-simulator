@@ -6,6 +6,8 @@ let interactionRadius = 190;
 let interactionStrength = 0.16;
 let speedScale = 1;
 let sizeScale = 1;
+let paused = false;
+let activePreset = 'calm';
 class Particle {
   constructor() {
     this.position = createVector(random(width), random(height));
@@ -16,6 +18,16 @@ class Particle {
     this.maxSpeed = random(1.3, 2.2);
     this.opacity = random(150, 255);
     this.phase = random(TWO_PI);
+  }
+  vortex() {
+    if (activePreset !== 'vortex') return;
+    const center = createVector(width / 2, height / 2);
+    const direction = p5.Vector.sub(center, this.position);
+    if (direction.magSq() < 1) return;
+    direction.normalize();
+    const tangent = createVector(-direction.y, direction.x);
+    tangent.mult(0.022);
+    this.velocity.add(tangent);
   }
   update() {
     this.velocity.mult(this.drag);
@@ -53,6 +65,7 @@ class Particle {
   }
   run() {
     this.interact();
+    this.vortex();
     this.update();
     this.edges();
     this.show();
@@ -68,6 +81,7 @@ function setup() {
   bindControls();
 }
 function draw() {
+  if (paused) return;
   background(5, trailAmount);
   drawFrame();
   drawParticleTotal();
@@ -157,3 +171,35 @@ function bindControls() {
     sizeScale = value;
   });
 }
+function resetParticles() {
+  for (const particle of particles) {
+    particle.position.set(random(width), random(height));
+    particle.velocity = p5.Vector.random2D().mult(random(0.35, 1.25));
+  }
+}
+function applyPreset(name) {
+  activePreset = name;
+  if (name === 'calm') {
+    speedScale = 0.8;
+    trailAmount = 32;
+  }
+  if (name === 'chaos') {
+    speedScale = 1.8;
+    trailAmount = 70;
+    for (const particle of particles) particle.velocity.mult(1.7);
+  }
+  if (name === 'vortex') {
+    speedScale = 1.15;
+    trailAmount = 24;
+  }
+  document.getElementById('speedControl').value = speedScale;
+  document.getElementById('speedValue').textContent = speedScale;
+}
+document.getElementById('pauseButton').addEventListener('click', event => {
+  paused = !paused;
+  event.currentTarget.textContent = paused ? 'Resume' : 'Pause';
+});
+document.getElementById('resetButton').addEventListener('click', resetParticles);
+document.querySelectorAll('[data-preset]').forEach(button => {
+  button.addEventListener('click', () => applyPreset(button.dataset.preset));
+});
