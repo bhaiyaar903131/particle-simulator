@@ -4,6 +4,8 @@ let trailAmount = 32;
 let interactionMode = 'attract';
 let interactionRadius = 190;
 let interactionStrength = 0.16;
+let speedScale = 1;
+let sizeScale = 1;
 class Particle {
   constructor() {
     this.position = createVector(random(width), random(height));
@@ -18,7 +20,8 @@ class Particle {
   update() {
     this.velocity.mult(this.drag);
     this.velocity.limit(this.maxSpeed);
-    this.position.add(this.velocity);
+    const movement = p5.Vector.mult(this.velocity, speedScale);
+    this.position.add(movement);
     this.phase += 0.025;
   }
   interact() {
@@ -46,7 +49,7 @@ class Particle {
   show() {
     const pulse = map(sin(this.phase), -1, 1, 0.7, 1);
     fill(240, this.opacity * pulse);
-    circle(this.position.x, this.position.y, this.size);
+    circle(this.position.x, this.position.y, this.size * sizeScale);
   }
   run() {
     this.interact();
@@ -62,6 +65,7 @@ function setup() {
   for (let i = 0; i < particleCount; i++) {
     particles.push(new Particle());
   }
+  bindControls();
 }
 function draw() {
   background(5, trailAmount);
@@ -131,4 +135,25 @@ function keyPressed() {
   if (key === 'r' || key === 'R') {
     setMode(interactionMode === 'attract' ? 'repel' : 'attract');
   }
+}
+function setParticleCount(value) {
+  while (particles.length < value) particles.push(new Particle());
+  if (particles.length > value) particles.length = value;
+}
+function bindRange(id, valueId, onInput) {
+  const control = document.getElementById(id);
+  const value = document.getElementById(valueId);
+  control.addEventListener('input', () => {
+    value.textContent = control.value;
+    onInput(Number(control.value));
+  });
+}
+function bindControls() {
+  bindRange('countControl', 'countValue', setParticleCount);
+  bindRange('speedControl', 'speedValue', value => {
+    speedScale = value;
+  });
+  bindRange('sizeControl', 'sizeValue', value => {
+    sizeScale = value;
+  });
 }
