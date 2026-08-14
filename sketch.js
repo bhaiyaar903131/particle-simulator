@@ -8,6 +8,9 @@ let speedScale = 1;
 let sizeScale = 1;
 let paused = false;
 let activePreset = 'calm';
+let touchActive = false;
+let pointerX = 0;
+let pointerY = 0;
 class Particle {
   constructor() {
     this.position = createVector(random(width), random(height));
@@ -37,8 +40,10 @@ class Particle {
     this.phase += 0.025;
   }
   interact() {
-    if (!mouseIsPressed) return;
-    const pointer = createVector(mouseX, mouseY);
+    if (!mouseIsPressed && !touchActive) return;
+    const targetX = touchActive ? pointerX : mouseX;
+    const targetY = touchActive ? pointerY : mouseY;
+    const pointer = createVector(targetX, targetY);
     const offset = p5.Vector.sub(pointer, this.position);
     const distance = offset.mag();
     if (distance <= 0 || distance > interactionRadius) return;
@@ -88,7 +93,7 @@ function draw() {
   for (const particle of particles) {
     particle.run();
   }
-  if (mouseIsPressed) drawInteractionRing();
+  if (mouseIsPressed || touchActive) drawInteractionRing();
 }
 function drawFrame() {
   push();
@@ -115,7 +120,9 @@ function windowResized() {
 function drawInteractionRing() {
   noFill();
   stroke(255, 45);
-  circle(mouseX, mouseY, interactionRadius * 2);
+  const x = touchActive ? pointerX : mouseX;
+  const y = touchActive ? pointerY : mouseY;
+  circle(x, y, interactionRadius * 2);
   noStroke();
   fill(240);
 }
@@ -124,6 +131,10 @@ function mouseWheel(event) {
   interactionRadius = constrain(interactionRadius, 70, 320);
   const label = document.getElementById('radiusLabel');
   if (label) label.textContent = `RADIUS ${round(interactionRadius)}`;
+  const control = document.getElementById('radiusControl');
+  const value = document.getElementById('radiusValue');
+  if (control) control.value = interactionRadius;
+  if (value) value.textContent = round(interactionRadius);
   return false;
 }
 function setMode(mode) {
@@ -170,6 +181,12 @@ function bindControls() {
   bindRange('sizeControl', 'sizeValue', value => {
     sizeScale = value;
   });
+  bindRange('radiusControl', 'radiusValue', value => {
+    interactionRadius = value;
+  });
+  bindRange('forceControl', 'forceValue', value => {
+    interactionStrength = value;
+  });
 }
 function resetParticles() {
   for (const particle of particles) {
@@ -203,3 +220,24 @@ document.getElementById('resetButton').addEventListener('click', resetParticles)
 document.querySelectorAll('[data-preset]').forEach(button => {
   button.addEventListener('click', () => applyPreset(button.dataset.preset));
 });
+function touchStarted() {
+  if (!touches.length) return true;
+  pointerX = touches[0].x;
+  pointerY = touches[0].y;
+  touchActive = true;
+  return false;
+}
+function touchMoved() {
+  if (!touches.length) return true;
+  pointerX = touches[0].x;
+  pointerY = touches[0].y;
+  touchActive = true;
+  return false;
+}
+function touchEnded() {
+  touchActive = false;
+  return false;
+}
+function doubleClicked() {
+  setMode(interactionMode === 'attract' ? 'repel' : 'attract');
+}

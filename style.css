@@ -90,6 +90,26 @@ canvas {
 .controls button:hover {
   background: #1b1b1b;
 }
+@media (max-width: 650px) {
+  .title {
+    top: 14px;
+    left: 14px;
+  }
+  .mode {
+    top: 12px;
+    right: 12px;
+  }
+  .hint {
+    display: none;
+  }
+  .controls {
+    right: 12px;
+    bottom: 12px;
+    width: min(220px, calc(100vw - 24px));
+    max-height: 52vh;
+    overflow-y: auto;
+  }
+}
 .radius {
   position: fixed;
   top: 54px;
@@ -107,6 +127,12 @@ canvas {
 .controls span {
   color: white;
   font-variant-numeric: tabular-nums;
+}
+canvas {
+  touch-action: none;
+}
+body {
+  user-select: none;
 }
 .radius::before {
   content: "WHEEL ";
